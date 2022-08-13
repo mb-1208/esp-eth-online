@@ -4,7 +4,8 @@ import { ChakraProvider } from "@chakra-ui/provider";
 import { extendTheme } from "@chakra-ui/react";
 import { nanoid } from "nanoid";
 import { ethers } from "ethers";
-import '../components/assets/App.css';
+import "../components/assets/App.css";
+import Head from "next/head";
 
 const App = ({ Component, pageProps }) => {
   const [username, setUsername] = useState("");
@@ -57,6 +58,9 @@ const App = ({ Component, pageProps }) => {
           setChoice,
         }}
       >
+        <Head>
+          <title>Pawws RPS</title>
+        </Head>
         <Component {...pageProps} />
       </AppContext.Provider>
     </ChakraProvider>
