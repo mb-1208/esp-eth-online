@@ -60,19 +60,19 @@ const Test = () => {
               id="rock"
               className="border border-3 rsp col m-3 p-3 d-flex align-items-center justify-content-center"
             >
-              <img src="img/rock.png" alt="rock" />
+              <img src="img/Rock.png" alt="rock" />
             </div>
             <div
               id="scissors"
               className="border border-3 rsp col m-3 p-3 d-flex align-items-center justify-content-center"
             >
-              <img src="img/scissors.png" alt="scissors" />
+              <img src="img/Scissors.png" alt="scissors" />
             </div>
             <div
               id="paper"
               className="border border-3 rsp col m-3 p-3 d-flex align-items-center justify-content-center"
             >
-              <img src="img/paper.png" alt="paper" />
+              <img src="img/Paper.png" alt="paper" />
             </div>
           </div>
 

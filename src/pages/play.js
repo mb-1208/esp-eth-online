@@ -428,13 +428,13 @@ export const Play = () => {
           </div>
         </div>
         <div className="game-box">
-          <div style={{ zIndex: "9" }}>
+          <div style={{ zIndex: "9", width: "80vw" }}>
             {!finalResult ? (
               <>
                 {rock ? (
                   <img
                     className="mb-4"
-                    src="rock.png"
+                    src="Rock.png"
                     style={{ margin: "0 auto" }}
                   />
                 ) : (
@@ -443,7 +443,7 @@ export const Play = () => {
                 {paper ? (
                   <img
                     className="mb-4"
-                    src="paper.png"
+                    src="Paper.png"
                     style={{ margin: "0 auto" }}
                   />
                 ) : (
@@ -452,7 +452,7 @@ export const Play = () => {
                 {scissors ? (
                   <img
                     className="mb-4"
-                    src="scissors.png"
+                    src="Scissors.png"
                     style={{ margin: "0 auto" }}
                   />
                 ) : (
@@ -479,7 +479,7 @@ export const Play = () => {
                       }}
                     >
                       <img
-                        src="rock.png"
+                        src="Rock.png"
                         width="30%"
                         style={{ margin: "0 auto" }}
                       />
@@ -496,7 +496,7 @@ export const Play = () => {
                       }}
                     >
                       <img
-                        src="paper.png"
+                        src="Paper.png"
                         width="30%"
                         style={{ margin: "0 auto" }}
                       />
@@ -513,7 +513,7 @@ export const Play = () => {
                       }}
                     >
                       <img
-                        src="scissors.png"
+                        src="Scissors.png"
                         width="30%"
                         style={{ margin: "0 auto" }}
                       />
