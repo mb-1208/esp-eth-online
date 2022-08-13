@@ -84,23 +84,44 @@ export const PlayerData = ({
         )} */}
         <div className="row">
           <div className="col text-center" style={{ alignSelf: "center" }}>
-            <img src={getChoice(gameDetails.p1Choice) + ".png"} width="100%" />
+            <img
+              src={getChoice(gameDetails.p1Choice) + ".png"}
+              style={{
+                width: "25vh",
+                margin: "auto",
+              }}
+            />
             <Text fontWeight="bold">{gameDetails.player1Name}</Text>
             <Code className="text-black">{gameDetails.player1}</Code>
           </div>
           <div className="col text-center" style={{ alignSelf: "center" }}>
-            <img src="vs.png" width="100%" />
+            <img
+              src="vs.png"
+              style={{
+                width: "25vh",
+                margin: "auto",
+              }}
+            />
           </div>
           <div className="col text-center" style={{ alignSelf: "center" }}>
             {gameDetails.player2 !== emptyAddress && (
               <>
                 {gameDetails.gameState === 2 ? (
-                  <img src={"RPS.gif"} width="100%" />
+                  <img
+                    src={"RPS.gif"}
+                    style={{
+                      width: "25vh",
+                      margin: "auto",
+                    }}
+                  />
                 ) : (
                   <>
                     <img
                       src={getChoice(gameDetails.p2Choice) + ".png"}
-                      width="100%"
+                      style={{
+                        width: "25vh",
+                        margin: "auto",
+                      }}
                     />
                   </>
                 )}
@@ -117,7 +138,11 @@ export const PlayerData = ({
             </i>
           </label>
         </div>
-        <button className="btn-play" onClick={sendSearch}>
+        <button
+          className="btn-play"
+          onClick={sendSearch}
+          style={{ width: "15%" }}
+        >
           Refresh
         </button>
       </Box>

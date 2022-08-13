@@ -545,7 +545,7 @@ export const Play = () => {
               <div className="text-center">
                 <button
                   className="btn-play"
-                  style={{ width: "60%" }}
+                  style={{ width: "15%" }}
                   onClick={() => {
                     sendVerification();
                   }}
