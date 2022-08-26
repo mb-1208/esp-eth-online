@@ -40,6 +40,7 @@ import { ReplayButton } from "../components/Buttons/ReplayButton";
 import { Search } from "../components/Search";
 import { Status } from "../components/Status";
 import { PlayerData } from "../components/PlayerData";
+import axios from "axios";
 
 const arbitrumAddress = "0x940E847a290582FAb776F8Ae794f23D9B660a6d2"; // L2 Arbitrum Rinkeby
 
@@ -98,9 +99,7 @@ export const Play = () => {
   const sendCommitment = async () => {
     const commitment = encrypt(nonce, value.state.choice);
     if (typeof window.ethereum !== "undefined") {
-      console.log("cekcek");
       try {
-        console.log("cek");
         await requestAccount();
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
@@ -122,7 +121,6 @@ export const Play = () => {
         );
         value.setStatus(0.1);
         setPending(true);
-        console.log("test doang");
         await transaction.wait().then(() => {
           setLockBet(true);
           setLockDone(true);
@@ -142,7 +140,7 @@ export const Play = () => {
         });
       } catch (err) {
         value.setStatus(0);
-        console.log("test "+ err);
+        console.log("test " + err);
         toast({
           title: "Lock Failed!",
           description: "Something wrong please try again.",
@@ -201,7 +199,8 @@ export const Play = () => {
       } catch (err) {
         toast({
           title: "Bet Failed!",
-          description: "Make sure both players lock the choice first, or please try again",
+          description:
+            "Make sure both players lock the choice first, or please try again",
           status: "error",
           duration: 5000,
           isClosable: true,
@@ -224,10 +223,15 @@ export const Play = () => {
     if (typeof window.ethereum !== "undefined") {
       try {
         await requestAccount();
+        let bet = "";
+        let winnerAddress = "";
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
+        const address = await signer.getAddress();
         const contract = new ethers.Contract(rpsAddress, RPS.abi, signer);
+        // console.log('test update');
         if (isAddress.test(query)) {
+          console.log("test update1");
           const transaction = await contract.getPlayerDetails(query);
           setPlayer(query);
           const [wins, losses, earnings] = transaction;
@@ -237,7 +241,13 @@ export const Play = () => {
             losses.toString(),
             ethers.utils.formatEther(earnings.toString()),
           ]);
+          console.log(
+            wins.toString(),
+            losses.toString(),
+            ethers.utils.formatEther(earnings.toString())
+          );
         } else {
+          // console.log('test update2');
           const transaction = await contract.getGameDetails(
             ethers.utils.id(value.state.gameId)
           );
@@ -246,10 +256,14 @@ export const Play = () => {
             ...transaction,
             bet: ethers.utils.formatEther(transaction.bet.toString()),
           };
+          bet = gameDetails.bet;
+          winnerAddress = gameDetails.winner;
           setGameDetails(gameDetails);
           setPlayer2(gameDetails.player2Name);
+          createResultMatch(gameDetails);
         }
-        getPlayerData();
+        // console.log(gameDetails);
+        getPlayerData(gameDetails);
         toast({
           title: "Updated!",
           description: "Success to get newest reponse.",
@@ -259,7 +273,7 @@ export const Play = () => {
           position: "top",
         });
       } catch (err) {
-        // console.error(err);
+        console.error(err);
         // toast({
         //   title: "Query Failed!",
         //   description: "Player or game not found.",
@@ -343,14 +357,74 @@ export const Play = () => {
             position: "top",
           });
         });
-        setPlayer2(gameDetails.player2Name);
+        setPlayer2(gameDetails.player2Name || "Player 2");
       } catch (err) {
         console.error("Error: ", err);
       }
     }
   };
 
-  const getPlayerData = async () => {
+  const updateResult = async (win, lose, earnings, address) => {
+    // console.log(win, lose, earnings, address);
+    await axios.patch(
+      `https://www.boxcube.space/api/leaderboardvs/address/${address}`,
+      {
+        win,
+        lose,
+        earnings,
+      }
+    );
+  };
+
+  const createResultMatch = async (gameDetails) => {
+    const gameId = gameDetails.p1Commit + "&&" + gameDetails.p2Commit;
+    const player1Address = gameDetails.player1;
+    const player1Name = gameDetails.player1Name;
+    const player1Choice = `${
+      gameDetails.p1Choice === 1
+        ? "rock"
+        : gameDetails.p1Choice === 2
+        ? "paper"
+        : "scissor"
+    }`;
+    const player2Address = gameDetails.player2;
+    const player2Name = gameDetails.player2Name;
+    const player2Choice = `${
+      gameDetails.p2Choice === 1
+        ? "rock"
+        : gameDetails.p2Choice === 2
+        ? "paper"
+        : "scissor"
+    }`;
+    const winner = gameDetails.winner;
+    const bet = gameDetails.bet;
+    const response = await axios.get("https://www.boxcube.space/api/matchresult");
+    var result = response.data.find((obj) => {
+      return obj.gameId === gameId;
+    });
+    if (gameDetails.gameState === 3) {
+      if (result === undefined) {
+        try {
+          await axios.post("https://www.boxcube.space/api/matchresult", {
+            gameId,
+            player1Address,
+            player1Name,
+            player1Choice,
+            player2Address,
+            player2Name,
+            player2Choice,
+            winner,
+            bet,
+          });
+          console.log("created success");
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    }
+  };
+
+  const getPlayerData = async (gameDetails) => {
     await requestAccount();
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
@@ -365,6 +439,10 @@ export const Play = () => {
         losses.toString(),
         ethers.utils.formatEther(earnings.toString()),
       ]);
+      if (gameDetails !== undefined) {
+        let earn = ethers.utils.formatEther(earnings.toString());
+        updateResult(wins.toString(), losses.toString(), earn, signerAddress);
+      }
     }
   };
 
@@ -433,9 +511,8 @@ export const Play = () => {
               <>
                 {rock ? (
                   <img
-                    className="mb-4"
                     src="Rock.png"
-                    style={{ margin: "0 auto" }}
+                    style={{ width: "30vh", margin: "0 auto" }}
                   />
                 ) : (
                   ""
@@ -444,7 +521,7 @@ export const Play = () => {
                   <img
                     className="mb-4"
                     src="Paper.png"
-                    style={{ margin: "0 auto" }}
+                    style={{ width: "30vh", margin: "0 auto" }}
                   />
                 ) : (
                   ""
@@ -453,7 +530,7 @@ export const Play = () => {
                   <img
                     className="mb-4"
                     src="Scissors.png"
-                    style={{ margin: "0 auto" }}
+                    style={{ width: "30vh", margin: "0 auto" }}
                   />
                 ) : (
                   ""

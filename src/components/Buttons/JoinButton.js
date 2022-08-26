@@ -17,9 +17,11 @@ import {
 import { RoundedArrow } from "./RoundedArrow";
 import { RoundedButton } from "./RoundedButton";
 import { ethers } from "ethers";
+import axios from "axios";
 
-export const JoinButton = () => {
+export const JoinButton = (address) => {
   const [roomId, setRoomId] = useState("");
+  const [walletName, setWalletName] = useState("");
   const toast = useToast();
   const value = useContext(AppContext);
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -29,12 +31,45 @@ export const JoinButton = () => {
     value.setBet(0);
     value.setChoice(1);
   };
+
+  const updateName = async () => {
+    await axios.patch(
+      `https://www.boxcube.space/api/leaderboardvs/address/${address.address}`,
+      {
+        walletName,
+      }
+    );
+  };
+
   return (
     <>
       <button
         className="btn-menu-style"
-        onClick={() => {
-          onOpen();
+        onClick={async () => {
+          if (typeof window.ethereum !== "undefined") {
+            if (address.address !== '') {
+              onOpen();
+            } else {
+              toast({
+                title: "Open your metamask!",
+                description:
+                  "Open and login your metamask or refresh your page",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+                position: "top",
+              });
+            }
+          } else {
+            toast({
+              title: "No Web3 Provider Found!",
+              description: "Please install MetaMask first.",
+              status: "error",
+              duration: 5000,
+              isClosable: true,
+              position: "top",
+            });
+          }
         }}
       >
         Find Room
@@ -61,7 +96,10 @@ export const JoinButton = () => {
                   value={value.state.username}
                   placeholder="Username"
                   variant="outline"
-                  onChange={(e) => value.setUsername(e.target.value)}
+                  onChange={(e) => {
+                    value.setUsername(e.target.value);
+                    setWalletName(e.target.value);
+                  }}
                 />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
@@ -88,6 +126,7 @@ export const JoinButton = () => {
                 color="orange"
                 content="Find Room"
                 onClick={() => {
+                  updateName();
                   reset();
                   onClose();
                   toast({
@@ -109,7 +148,8 @@ export const JoinButton = () => {
                 onClick={() => {
                   toast({
                     title: "Something Wrong!",
-                    description: "Make sure your username or room id is correct.",
+                    description:
+                      "Make sure your username or room id is correct.",
                     status: "error",
                     duration: 4000,
                     isClosable: true,

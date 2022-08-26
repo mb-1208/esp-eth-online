@@ -19,9 +19,11 @@ import { RoundedButton } from "./RoundedButton";
 import AppContext from "../../utils/AppContext";
 import { nanoid } from "nanoid";
 import { ethers } from "ethers";
+import axios from "axios";
 
-export const CreateButton = () => {
+export const CreateButton = (address) => {
   const [validation, setValidaiton] = useState(false);
+  const [walletName, setWalletName] = useState("");
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const value = useContext(AppContext);
@@ -35,14 +37,45 @@ export const CreateButton = () => {
     value.setBet(0);
     value.setChoice(1);
   };
-  
+
+  const updateName = async () => {
+    await axios
+      .patch(`https://www.boxcube.space/api/leaderboardvs/address/${address.address}`, {
+        walletName,
+      });
+  };
+
   return (
     <>
       <button
         className="btn-menu-style"
         onClick={() => {
-          reset();
-          onOpen();
+          if (typeof window.ethereum !== "undefined") {
+            console.log(address.address);
+            if (address.address !== '') {
+              reset();
+              onOpen();
+            } else {
+              toast({
+                title: "Open your metamask!",
+                description:
+                  "Open and login your metamask or refresh your page",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+                position: "top",
+              });
+            }
+          } else {
+            toast({
+              title: "No Web3 Provider Found!",
+              description: "Please install MetaMask first.",
+              status: "error",
+              duration: 5000,
+              isClosable: true,
+              position: "top",
+            });
+          }
         }}
       >
         Create Room
@@ -69,7 +102,10 @@ export const CreateButton = () => {
                   value={value.state.username}
                   placeholder="Username"
                   variant="outline"
-                  onChange={(e) => value.setUsername(e.target.value)}
+                  onChange={(e) => {
+                    value.setUsername(e.target.value);
+                    setWalletName(e.target.value);
+                  }}
                 />
               </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
@@ -110,6 +146,7 @@ export const CreateButton = () => {
                 color="orange"
                 content="Create Room"
                 onClick={() => {
+                  updateName();
                   onClose();
                   toast({
                     title: "Room Created!",

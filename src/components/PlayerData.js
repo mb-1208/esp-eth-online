@@ -1,7 +1,7 @@
 import { Box, Heading, HStack, Text, Divider } from "@chakra-ui/layout";
 import { Code } from "@chakra-ui/react";
 import AppContext from "../utils/AppContext";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 
 export const PlayerData = ({
   gameDetails,
@@ -27,6 +27,12 @@ export const PlayerData = ({
         return "Scissors";
     }
   };
+
+  useEffect(() => {
+    setTimeout(() => {
+      sendSearch();
+    }, 3000);
+  }, []);
 
   if (!gameDetails) {
     return null;
@@ -140,7 +146,11 @@ export const PlayerData = ({
         </div>
         <button
           className="btn-play"
-          onClick={sendSearch}
+          onClick={() => {
+            setTimeout(() => {
+              sendSearch();
+            }, 3000);
+          }}
           style={{ width: "15%" }}
         >
           Refresh
