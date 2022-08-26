@@ -18,7 +18,7 @@ export const Login = () => {
           <Text className="mb-2" fontSize="3xl" fontWeight="bolder" color="black">
             Login with Discord
           </Text>
-          <a href="https://discord.com/api/oauth2/authorize?client_id=1011578388164644875&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauth%2Fdiscord&response_type=token&scope=identify" className="button-login">
+          <a href="https://discord.com/api/oauth2/authorize?client_id=1011578388164644875&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2Fmenu&response_type=token&scope=identify" className="button-login">
             Login
           </a>
         </div>

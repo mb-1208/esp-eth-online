@@ -461,7 +461,7 @@ export const Play = () => {
             style={{ display: "flex" }}
           >
             <div style={{ width: "100%" }}>
-              <a href="/">
+              <a href="/menu">
                 <IconArrowLeft />
               </a>
             </div>

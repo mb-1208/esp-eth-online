@@ -141,7 +141,7 @@ const Stats = () => {
       <div className="stats-section">
         <div className="p-4" style={{ display: "flex" }}>
           <Center className="me-2">
-            <a href="/" className="text-black">
+            <a href="/menu" className="text-black">
               <IconArrowLeft color="#fec078" />
             </a>
           </Center>

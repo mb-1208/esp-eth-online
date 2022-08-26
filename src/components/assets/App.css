@@ -7,6 +7,11 @@
   align-items: center;
 }
 
+.avatar-dc {
+  width: 5vh;
+  border-radius: 50%;
+}
+
 .login-section {
   width: 100vw;
   background: #fbfec4;
@@ -58,15 +63,15 @@ html {
   background: #fbfec4;
 }
 
-.progress{
+.progress {
   background-color: transparent !important;
 }
 
-.progress-bar{
+.progress-bar {
   background-color: #6d8725 !important;
 }
 
-.live-record{
+.live-record {
   position: absolute;
   bottom: 0;
   color: red;
@@ -210,7 +215,15 @@ html {
   border: 5px solid #ffa947;
 }
 
+.exclusion{
+  mix-blend-mode: exclusion;
+}
+
 @media only screen and (max-width: 992px) {
+  .avatar-dc {
+    width: 10vh;
+    border-radius: 50%;
+  }
   .btn-menu-style {
     width: 100%;
   }

@@ -6,8 +6,10 @@ import { Spinner } from "@chakra-ui/spinner";
 
 const Leaderboard = () => {
   const [dataLeaderboard, setDataLeaderboard] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     getTopCollection();
   }, []);
 
@@ -21,20 +23,26 @@ const Leaderboard = () => {
     });
     // console.log(dataSort);
     setDataLeaderboard(dataSort);
+    setLoading(false);
   };
 
   return (
     <>
       <div className="leaderboard-section">
         <div className="back-leaderboard" style={{ width: "100%" }}>
-          <a href="/">
+          <a href="/menu">
             <IconArrowLeft color="#ffa031" />
           </a>
         </div>
-        <div className="container leaderboard-wrapper">
+        <div
+          className="container leaderboard-wrapper"
+          style={{ textAlign: "center" }}
+        >
           <h1 className="title-leaderboard">Top 10 Player Earnings</h1>
-          <div className="card-wrap-leaderboard">
-            <Suspense fallback={<Spinner />}>
+          {loading ? (
+            <Spinner color="green" />
+          ) : (
+            <div className="card-wrap-leaderboard">
               {dataLeaderboard.slice(0, 10).map((data, index) => (
                 <div className="card-leaderboard" key={data.id}>
                   <div className="layout-card-leaderboard">
@@ -59,8 +67,8 @@ const Leaderboard = () => {
                   </div>
                 </div>
               ))}
-            </Suspense>
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </>
