@@ -4,7 +4,7 @@ import { IconArrowLeft, IconCrown } from "@tabler/icons";
 import axios from "axios";
 import { Spinner } from "@chakra-ui/spinner";
 
-const Leaderboard = () => {
+export const Leaderboard = () => {
   const [dataLeaderboard, setDataLeaderboard] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -28,17 +28,17 @@ const Leaderboard = () => {
 
   return (
     <>
-      <div className="leaderboard-section">
-        <div className="back-leaderboard" style={{ width: "100%" }}>
+      {/* <div className="back-leaderboard" style={{ width: "100%" }}>
           <a href="/menu">
             <IconArrowLeft color="#ffa031" />
           </a>
-        </div>
-        <div
-          className="container leaderboard-wrapper"
-          style={{ textAlign: "center" }}
-        >
-          <h1 className="title-leaderboard">Top 10 Player Earnings</h1>
+        </div> */}
+      <div
+        className="container leaderboard-wrapper"
+        style={{ textAlign: "center" }}
+      >
+        <h1 className="title-leaderboard">Top 10 Player Earnings</h1>
+        <div className="leaderboard-section">
           {loading ? (
             <Spinner color="green" />
           ) : (
@@ -75,4 +75,4 @@ const Leaderboard = () => {
   );
 };
 
-export default Leaderboard;
+// export default Leaderboard;

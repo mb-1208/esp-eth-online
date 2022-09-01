@@ -8,11 +8,15 @@ import "../components/assets/App.css";
 import Head from "next/head";
 
 const App = ({ Component, pageProps }) => {
+  const [roomId, setRoomId] = useState("");
+  const [discordId, setDiscordId] = useState("");
+  const [walletAvatar, setWalletAvatar] = useState("");
   const [nameDb, setNameDb] = useState("");
   const [walletFromDb, setWalletFromDb] = useState("");
   const [username, setUsername] = useState("");
   const [gameId, setGameId] = useState(nanoid());
   const [bytesGameId, setBytesGameId] = useState(ethers.utils.id(gameId));
+  const [stateBet, setStateBet] = useState(0);
   const [status, setStatus] = useState(0);
   const [outcome, setOutcome] = useState("unknown");
   const [bet, setBet] = useState(0);
@@ -52,6 +56,10 @@ const App = ({ Component, pageProps }) => {
             choice,
             walletFromDb,
             nameDb,
+            discordId,
+            walletAvatar,
+            stateBet,
+            roomId
           },
           setUsername,
           setGameId,
@@ -62,6 +70,10 @@ const App = ({ Component, pageProps }) => {
           setChoice,
           setWalletFromDb,
           setNameDb,
+          setDiscordId,
+          setWalletAvatar,
+          setStateBet,
+          setRoomId
         }}
       >
         <Head>

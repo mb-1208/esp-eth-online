@@ -1,6 +1,6 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useState, useEffect, Suspense } from "react";
-import { IconArrowLeft, IconCrown } from "@tabler/icons";
+import { IconArrowLeft, IconCrown, IconCurrencyEthereum } from "@tabler/icons";
 import axios from "axios";
 import { Text, Center } from "@chakra-ui/layout";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
@@ -10,6 +10,7 @@ import { Spinner } from "@chakra-ui/spinner";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const Stats = () => {
+  const [dataDailyFee, setDataDailyFee] = useState([]);
   const [dataTop, setDataTop] = useState([]);
   const [dataGraph, setDataGraph] = useState({
     labels: ["Rock", "Paper", "Scissor"],
@@ -27,6 +28,7 @@ const Stats = () => {
     ],
   });
   const [dataBet, setDataBet] = useState("");
+  const [dataFee, setDataFee] = useState("");
   const [dataTotalMatch, setDataTotalMatch] = useState("");
   const [dataHighestWin, setDataHighestWin] = useState("");
   const [dataHighestLose, setDataHighestLose] = useState("");
@@ -87,13 +89,75 @@ const Stats = () => {
   };
 
   const getData = async (e) => {
-    const response = await axios.get("https://www.boxcube.space/api/leaderboardvs");
+    const response = await axios.get(
+      "https://www.boxcube.space/api/leaderboardvs"
+    );
     return response.data;
   };
 
+  function filterByValue(array, string) {
+    return array.filter((o) =>
+      Object.keys(o).some((k) => o[k].includes(string))
+    );
+  }
+
   const getDataMatch = async (e) => {
-    const response = await axios.get("https://www.boxcube.space/api/matchresult");
+    const response = await axios.get(
+      "https://www.boxcube.space/api/matchresult"
+    );
+    let uniqueYearMonths = [
+      ...new Set(response.data.map((x) => x.createdAt.substring(0, 7))),
+    ];
+    let results = [
+      ...new Set(response.data.map((x) => x.createdAt.substring(0, 4))),
+    ].map((year) => ({
+      year: year,
+      months: uniqueYearMonths
+        .filter((ym) => ym.startsWith(year))
+        .map((ym) => ({
+          month: ym.substring(5, 7),
+          items: response.data
+            .filter((item) => item.createdAt.startsWith(ym))
+            .map((item) => ({
+              id: item.id,
+              fee: item.fee,
+            })),
+        })),
+    }));
+    // console.log(results); // Get data detail all year fee
+    let month = ("0" + (new Date().getMonth() + 1)).slice(-2);
+    let year = new Date().getFullYear();
+    var filterDataYear = filterByValue(results, year.toString());
+    console.log(filterDataYear); // Get data year fee
+    var filterDataMonth = filterByValue(filterDataYear[0].months, month);
+    console.log(filterDataMonth); // Get data monthly fee
+    calculateTotalFee(filterDataMonth);
+    var resultDaily = response.data.filter((date) => {
+      const orderDate = new Date(date.createdAt);
+      const today = new Date();
+      const isThisDay = orderDate.getDay() === today.getDay();
+      return isThisDay;
+    });
+    setDataDailyFee(resultDaily);
+    console.log(resultDaily); // Get data daily fee
     return response.data;
+  };
+
+  const calculateTotalFee = (dataMatch) => {
+    Array.prototype.sum = function (prop) {
+      var total = 0;
+      for (var i = 0, _len = this.length; i < _len; i++) {
+        total += parseFloat(this[i][prop]);
+      }
+      return total.toFixed(6);
+    };
+    // const 
+    if(dataMatch[0] !== undefined){
+      setDataFee(dataMatch[0].items.sum(`fee`).toString());
+      console.log(dataMatch[0].items.sum(`fee`).toString());
+    } else {
+      setDataFee('0');
+    }
   };
 
   const calculateTotalBet = (dataMatch) => {
@@ -102,10 +166,10 @@ const Stats = () => {
       for (var i = 0, _len = this.length; i < _len; i++) {
         total += parseFloat(this[i][prop]);
       }
-      return total;
+      return total.toFixed(6);
     };
-    setDataBet((dataMatch.sum(`bet`)).toString());
-    console.log(dataMatch.sum(`bet`));
+    setDataBet(dataMatch.sum(`bet`).toString());
+    // console.log(dataMatch.sum(`bet`));
   };
 
   const highestWin = async (data) => {
@@ -222,9 +286,18 @@ const Stats = () => {
               <div className="row">
                 <div className="col-sm-6" style={{ paddingRight: "0" }}>
                   <div className="card m-2" style={{ height: "15vh" }}>
-                    <Center style={{ height: "100%" }}>
-                      <Text color="white" fontSize="3xl" fontWeight="bolder">
-                        {dataBet} Eth
+                    <Center
+                      style={{
+                        height: "100%",
+                      }}
+                    >
+                      <Text
+                        style={{ display: "flex" }}
+                        color="white"
+                        fontSize="3xl"
+                        fontWeight="bolder"
+                      >
+                        {dataBet} <IconCurrencyEthereum size={40} />
                       </Text>
                     </Center>
                     <hr />
@@ -255,6 +328,101 @@ const Stats = () => {
                       </Text>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+            <div className="col-sm-6">
+              <div className="card m-2 p-2" style={{ height: "20vh" }}>
+                <div
+                  style={{
+                    maxHeight: "15vh",
+                    height: '15vh',
+                    overflowY: 'auto'
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                    }}
+                  >
+                    <div style={{ width: "20%" }}>
+                      <Text color="white" fontSize="sm" fontWeight="bolder">
+                        No
+                      </Text>
+                    </div>
+                    <div style={{ width: "100%" }}>
+                      <Text color="white" fontSize="sm" fontWeight="bolder">
+                        Game ID
+                      </Text>
+                    </div>
+                    <div style={{ width: "100%" }}>
+                      <Text color="white" fontSize="sm" fontWeight="bolder">
+                        Fee
+                      </Text>
+                    </div>
+                  </div>
+                  <hr />
+                  {dataDailyFee.slice(0, 3).map((data, index) => (
+                    <div>
+                      <div
+                        style={{
+                          height: "100%",
+                          width: "100%",
+                          display: "flex",
+                        }}
+                      >
+                        <div style={{ width: "20%" }}>
+                          <Text color="white" fontSize="sm" fontWeight="bolder">
+                            {index + 1}
+                          </Text>
+                        </div>
+                        <div style={{ width: "100%" }}>
+                          <Text className="daily-fee" color="white" fontSize="sm" fontWeight="bolder">
+                            {data.gameId}
+                          </Text>
+                        </div>
+                        <div style={{ width: "100%" }}>
+                          <Text color="white" fontSize="sm" fontWeight="bolder">
+                            {data.fee}
+                          </Text>
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                  ))}
+                </div>
+                <hr />
+                <div className="p-2">
+                  <Text color="#545458" fontSize="xl">
+                    Daily Fee
+                  </Text>
+                  <Text color="#545458" fontSize="sm">
+                    List Daily Fee
+                  </Text>
+                </div>
+              </div>
+            </div>
+            <div className="col-sm-6">
+              <div className="card m-2" style={{ height: "20vh" }}>
+                <Center style={{ height: "90%" }}>
+                  <Text
+                    style={{ display: "flex" }}
+                    color="white"
+                    fontSize="3xl"
+                    fontWeight="bolder"
+                  >
+                    {dataFee} <IconCurrencyEthereum size={40} />
+                  </Text>
+                </Center>
+                <hr />
+                <div className="p-2">
+                  <Text color="#545458" fontSize="xl">
+                    Monthly Fee
+                  </Text>
+                  <Text color="#545458" fontSize="sm">
+                    Total Monthly Fee
+                  </Text>
                 </div>
               </div>
             </div>

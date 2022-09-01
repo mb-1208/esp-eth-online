@@ -1,4 +1,5 @@
-import React, { useContext, useState } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import React, { useContext, useState, useEffect } from "react";
 import AppContext from "../../utils/AppContext";
 import { Button } from "@chakra-ui/button";
 import { Grid, GridItem, Text } from "@chakra-ui/layout";
@@ -18,10 +19,10 @@ import { RoundedArrow } from "./RoundedArrow";
 import { RoundedButton } from "./RoundedButton";
 import { ethers } from "ethers";
 import axios from "axios";
+import { IconSearch } from "@tabler/icons";
 
 export const JoinButton = (address) => {
   const [roomId, setRoomId] = useState("");
-  const [walletName, setWalletName] = useState("");
   const toast = useToast();
   const value = useContext(AppContext);
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -32,22 +33,13 @@ export const JoinButton = (address) => {
     value.setChoice(1);
   };
 
-  const updateName = async () => {
-    await axios.patch(
-      `https://www.boxcube.space/api/leaderboardvs/address/${address.address}`,
-      {
-        walletName,
-      }
-    );
-  };
-
   return (
     <>
       <button
-        className="btn-menu-style"
+        className="btn-menu-style stats-btn"
         onClick={async () => {
           if (typeof window.ethereum !== "undefined") {
-            if (address.address !== '') {
+            if (address.address !== "") {
               onOpen();
             } else {
               toast({
@@ -72,6 +64,7 @@ export const JoinButton = (address) => {
           }
         }}
       >
+        <IconSearch />
         Find Room
       </button>
 
@@ -86,22 +79,6 @@ export const JoinButton = (address) => {
               templateColumns="repeat(6, 1fr)"
               gap={4}
             >
-              <GridItem rowSpan={1} colSpan={1}>
-                <Text mt={1} fontSize="lg">
-                  Username:
-                </Text>{" "}
-              </GridItem>
-              <GridItem rowSpan={1} colSpan={5}>
-                <Input
-                  value={value.state.username}
-                  placeholder="Username"
-                  variant="outline"
-                  onChange={(e) => {
-                    value.setUsername(e.target.value);
-                    setWalletName(e.target.value);
-                  }}
-                />
-              </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <Text mt={1} fontSize="lg">
                   ID Room:
@@ -126,7 +103,6 @@ export const JoinButton = (address) => {
                 color="orange"
                 content="Find Room"
                 onClick={() => {
-                  updateName();
                   reset();
                   onClose();
                   toast({
@@ -159,7 +135,6 @@ export const JoinButton = (address) => {
                 size="md"
               />
             )}
-
             <button
               className="btn-menu-modal"
               onClick={() => {

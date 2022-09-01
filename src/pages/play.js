@@ -3,46 +3,24 @@ import AppContext from "../utils/AppContext";
 import RPS from "../../contracts/RPS.json";
 import { IconButton } from "@chakra-ui/button";
 import { CopyIcon } from "@chakra-ui/icons";
-import { Input } from "@chakra-ui/input";
 import { useClipboard, useDisclosure } from "@chakra-ui/hooks";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { IconArrowLeft } from "@tabler/icons";
 import {
-  Center,
-  HStack,
-  VStack,
   Text,
-  Box,
-  GridItem,
-  Grid,
-  Divider,
-  SimpleGrid,
 } from "@chakra-ui/layout";
-import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-} from "@chakra-ui/react";
+import { Code } from "@chakra-ui/react";
 
-import { RoundedButton } from "../components/Buttons/RoundedButton";
 import { useColorMode } from "@chakra-ui/color-mode";
-import { GameAlert } from "../components/GameAlert";
 import { Select, Spinner, useToast } from "@chakra-ui/react";
-import { Bet } from "../components/Bet";
-import { Icon } from "@iconify/react";
 import { ethers } from "ethers";
-import { CancelButton } from "../components/Buttons/CancelButton";
-import { ReplayButton } from "../components/Buttons/ReplayButton";
-import { Search } from "../components/Search";
 import { Status } from "../components/Status";
 import { PlayerData } from "../components/PlayerData";
 import axios from "axios";
+import { io } from "socket.io-client";
+import { useRouter } from "next/router";
 
-const arbitrumAddress = "0x940E847a290582FAb776F8Ae794f23D9B660a6d2"; // L2 Arbitrum Rinkeby
+const arbitrumAddress = "0x7D8f4803DCc03Cc7C7Ae4319891791A6c9de6367"; // L2 Arbitrum Rinkeby
 
 const nonce = ethers.utils.randomBytes(32);
 const encrypt = (nonce, choice) => {
@@ -79,6 +57,7 @@ export const Play = () => {
       return match[1];
     }
   };
+  const router = useRouter();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
@@ -143,7 +122,7 @@ export const Play = () => {
         console.log("test " + err);
         toast({
           title: "Lock Failed!",
-          description: "Something wrong please try again.",
+          description: "Make sure your bet is the same with other player",
           status: "error",
           duration: 5000,
           isClosable: true,
@@ -318,7 +297,7 @@ export const Play = () => {
           }
           value.setStatus(2);
           toast({
-            title: "Opponent Committed!",
+            title: "Opponent Updated!",
             description: "Please verify your choice",
             status: "info",
             duration: 5000,
@@ -398,7 +377,10 @@ export const Play = () => {
     }`;
     const winner = gameDetails.winner;
     const bet = gameDetails.bet;
-    const response = await axios.get("https://www.boxcube.space/api/matchresult");
+    const fee = ((2 * bet * 3.5) / 100).toString();
+    const response = await axios.get(
+      "https://www.boxcube.space/api/matchresult"
+    );
     var result = response.data.find((obj) => {
       return obj.gameId === gameId;
     });
@@ -415,12 +397,35 @@ export const Play = () => {
             player2Choice,
             winner,
             bet,
+            fee,
           });
           console.log("created success");
         } catch (e) {
           console.log(e);
         }
       }
+    }
+  };
+
+  const getRoomDb = async () => {
+    const parse = (val) => val.replace(/^\$/, "");
+    const response = await axios.get(
+      `https://boxcube.space/api/listroom/room/${value.state.gameId}`
+    );
+    if (response.data !== null) {
+      liveData(response.data.roomId);
+      value.setBet(parse(response.data.bet));
+      console.log(parse(response.data.bet));
+    } else {
+      toast({
+        title: `Room not detected!`,
+        description: 'Please create room first',
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top",
+      });
+      router.push("/menu");
     }
   };
 
@@ -446,7 +451,34 @@ export const Play = () => {
     }
   };
 
+  const liveData = async (roomId) => {
+    const socket = io("http://localhost:5000");
+    socket.on("connect", () => {
+      socket.emit("new-user", roomId, value.state.username);
+      socket.on("user-connected", (message) => {
+        toast({
+          title: `${message} has join the game!`,
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+          position: "top",
+        });
+      });
+      socket.on("user-disconnected", (message) => {
+        toast({
+          title: `${message} leave the game!`,
+          status: "warning",
+          duration: 5000,
+          isClosable: true,
+          position: "top",
+        });
+      });
+    });
+  };
+
   useEffect(async () => {
+    liveData();
+    getRoomDb();
     checkEvents();
     getPlayerData();
     sendSearch();
@@ -472,6 +504,8 @@ export const Play = () => {
               />
             </div>
             <div className="text-end" style={{ width: "100%" }}>
+              Room Number: <strong>1</strong>
+              <br />
               Room ID: <strong>{value.state.gameId}</strong>
               <IconButton
                 size="sm"
@@ -507,132 +541,197 @@ export const Play = () => {
         </div>
         <div className="game-box">
           <div style={{ zIndex: "9", width: "80vw" }}>
-            {!finalResult ? (
-              <>
-                {rock ? (
-                  <img
-                    src="Rock.png"
-                    style={{ width: "30vh", margin: "0 auto" }}
-                  />
-                ) : (
-                  ""
-                )}
-                {paper ? (
-                  <img
-                    className="mb-4"
-                    src="Paper.png"
-                    style={{ width: "30vh", margin: "0 auto" }}
-                  />
-                ) : (
-                  ""
-                )}
-                {scissors ? (
-                  <img
-                    className="mb-4"
-                    src="Scissors.png"
-                    style={{ width: "30vh", margin: "0 auto" }}
-                  />
-                ) : (
-                  ""
-                )}
-              </>
-            ) : (
-              ""
-            )}
-            {!lockBet ? (
-              <>
-                <div
-                  className="row text-black text-center"
-                  style={{ width: "50%", margin: "0 auto" }}
-                >
-                  <div className="col">
-                    <button
-                      className="btn-choice"
-                      onClick={() => {
-                        value.setChoice(1);
-                        setRock(true);
-                        setPaper(false);
-                        setScissors(false);
-                      }}
-                    >
+            <div className="row">
+              <div className="col text-center" style={{ alignSelf: "center" }}>
+                {!finalResult ? (
+                  <div className="mt-4">
+                    {rock ? (
                       <img
                         src="Rock.png"
-                        width="30%"
-                        style={{ margin: "0 auto" }}
+                        style={{
+                          width: "30vh",
+                          margin: "0 auto",
+                          padding: "1rem 0",
+                        }}
                       />
-                    </button>
-                  </div>
-                  <div className="col">
-                    <button
-                      className="btn-choice"
-                      onClick={() => {
-                        value.setChoice(2);
-                        setPaper(true);
-                        setRock(false);
-                        setScissors(false);
-                      }}
-                    >
+                    ) : (
+                      ""
+                    )}
+                    {paper ? (
                       <img
+                        className="mb-4"
                         src="Paper.png"
-                        width="30%"
-                        style={{ margin: "0 auto" }}
+                        style={{
+                          width: "30vh",
+                          margin: "0 auto",
+                          padding: "1rem 0",
+                        }}
                       />
-                    </button>
+                    ) : (
+                      ""
+                    )}
+                    {scissors ? (
+                      <img
+                        className="mb-4"
+                        src="Scissors.png"
+                        style={{
+                          width: "30vh",
+                          margin: "0 auto",
+                          padding: "1rem 0",
+                        }}
+                      />
+                    ) : (
+                      ""
+                    )}
                   </div>
-                  <div className="col">
+                ) : (
+                  ""
+                )}
+                {!lockBet ? (
+                  <>
+                    <div
+                      className="row text-black text-center"
+                      style={{ width: "50%", margin: "0 auto" }}
+                    >
+                      <div className="col">
+                        <button
+                          className="btn-choice"
+                          onClick={() => {
+                            value.setChoice(1);
+                            setRock(true);
+                            setPaper(false);
+                            setScissors(false);
+                          }}
+                        >
+                          <img
+                            src="Rock.png"
+                            width="100%"
+                            style={{ margin: "0 auto" }}
+                          />
+                        </button>
+                      </div>
+                      <div className="col">
+                        <button
+                          className="btn-choice"
+                          onClick={() => {
+                            value.setChoice(2);
+                            setPaper(true);
+                            setRock(false);
+                            setScissors(false);
+                          }}
+                        >
+                          <img
+                            src="Paper.png"
+                            width="100%"
+                            style={{ margin: "0 auto" }}
+                          />
+                        </button>
+                      </div>
+                      <div className="col">
+                        <button
+                          className="btn-choice"
+                          onClick={() => {
+                            value.setChoice(3);
+                            setScissors(true);
+                            setPaper(false);
+                            setRock(false);
+                          }}
+                        >
+                          <img
+                            src="Scissors.png"
+                            width="100%"
+                            style={{ margin: "0 auto" }}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                    <br />
+                    {/* <div style={{ width: "50%", margin: "0 auto" }}>
+                      <Bet />
+                    </div> */}
+                  </>
+                ) : (
+                  ""
+                )}
+                {!lockBet ? (
+                  <div className="text-center">
                     <button
-                      className="btn-choice"
+                      style={{ width: "40%" }}
+                      className="btn-play"
                       onClick={() => {
-                        value.setChoice(3);
-                        setScissors(true);
-                        setPaper(false);
-                        setRock(false);
+                        sendCommitment();
                       }}
                     >
-                      <img
-                        src="Scissors.png"
-                        width="30%"
-                        style={{ margin: "0 auto" }}
-                      />
+                      Lock
                     </button>
                   </div>
-                </div>
-                <div style={{ width: "50%", margin: "0 auto" }}>
-                  <Bet />
-                </div>
-              </>
-            ) : (
-              ""
-            )}
-            {!lockBet ? (
-              <div className="text-center">
-                <button
-                  className="btn-play"
-                  onClick={() => {
-                    sendCommitment();
-                  }}
-                >
-                  Lock
-                </button>
+                ) : (
+                  ""
+                )}
+                {lockDone ? (
+                  <div className="text-center">
+                    <button
+                      className="btn-play"
+                      style={{ width: "15%" }}
+                      onClick={() => {
+                        sendVerification();
+                      }}
+                    >
+                      Bet
+                    </button>
+                  </div>
+                ) : (
+                  ""
+                )}
               </div>
-            ) : (
-              ""
-            )}
-            {lockDone ? (
-              <div className="text-center">
-                <button
-                  className="btn-play"
-                  style={{ width: "15%" }}
-                  onClick={() => {
-                    sendVerification();
-                  }}
-                >
-                  Bet
-                </button>
-              </div>
-            ) : (
-              ""
-            )}
+              {!finalResult ? (
+                <>
+                  <div
+                    className="col text-center"
+                    style={{ alignSelf: "center" }}
+                  >
+                    <div
+                      className="col text-center"
+                      style={{ alignSelf: "center" }}
+                    >
+                      <Text fontSize="xl" fontWeight="bolder" color="#6d8725">
+                        Room Bet : {value.state.bet}
+                      </Text>
+                      <img
+                        src="vs.png"
+                        style={{
+                          width: "40vh",
+                          margin: "auto",
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div
+                    className="col text-center"
+                    style={{ alignSelf: "center" }}
+                  >
+                    <img
+                      src={"RPS.gif"}
+                      style={{
+                        width: "35vh",
+                        margin: "auto",
+                      }}
+                    />
+                    <Text color="black" fontWeight="bold">
+                      Player 2
+                    </Text>
+                    <Code
+                      className="text-black"
+                      style={{ paddingBottom: "4rem" }}
+                    >
+                      Waiting...
+                    </Code>
+                  </div>
+                </>
+              ) : (
+                ""
+              )}
+            </div>
             {finalResult ? (
               <div className="text-center text-black">
                 {/* <div>

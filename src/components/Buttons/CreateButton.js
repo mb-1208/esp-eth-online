@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { Button, IconButton } from "@chakra-ui/button";
 import { Grid, GridItem, HStack, Text } from "@chakra-ui/layout";
 import { useDisclosure } from "@chakra-ui/hooks";
@@ -17,17 +17,22 @@ import { CopyIcon } from "@chakra-ui/icons";
 import { Input } from "@chakra-ui/input";
 import { RoundedButton } from "./RoundedButton";
 import AppContext from "../../utils/AppContext";
+import { Bet } from "../Bet";
 import { nanoid } from "nanoid";
 import { ethers } from "ethers";
 import axios from "axios";
+import { IconDoorEnter } from "@tabler/icons";
+import { useRouter } from "next/router";
 
 export const CreateButton = (address) => {
+  const [roomStatus, setRoomStatus] = useState("Public");
   const [validation, setValidaiton] = useState(false);
-  const [walletName, setWalletName] = useState("");
   const toast = useToast();
+  const router = useRouter();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const value = useContext(AppContext);
   const { hasCopied, onCopy } = useClipboard(value.state.gameId);
+  const parse = (val) => val.replace(/^\$/, "");
   const reset = () => {
     const newId = nanoid();
     value.setGameId(newId);
@@ -38,23 +43,41 @@ export const CreateButton = (address) => {
     value.setChoice(1);
   };
 
-  const updateName = async () => {
-    await axios
-      .patch(`https://www.boxcube.space/api/leaderboardvs/address/${address.address}`, {
-        walletName,
-      });
+  const createRoomDb = async () => {
+    const roomId = value.state.gameId;
+    const roomOwner = address.address;
+    const roomMember = '1';
+    const bet = value.state.stateBet;
+    const setRoom = roomStatus;
+    try {
+      await axios
+        .post("https://www.boxcube.space/api/listroom", {
+          roomId,
+          roomOwner,
+          roomMember,
+          bet,
+          setRoom,
+        })
+        .then(() => router.push("/play"));
+    } catch (e) {
+      console.log(e);
+    }
   };
+
+  useEffect(() => {
+  }, [roomStatus]);
 
   return (
     <>
       <button
-        className="btn-menu-style"
+        className="btn-menu-style stats-btn"
         onClick={() => {
           if (typeof window.ethereum !== "undefined") {
             console.log(address.address);
-            if (address.address !== '') {
+            if (address.address !== "") {
               reset();
               onOpen();
+              // value.setBet(parse("0.001"));
             } else {
               toast({
                 title: "Open your metamask!",
@@ -78,6 +101,7 @@ export const CreateButton = (address) => {
           }
         }}
       >
+        <IconDoorEnter />
         Create Room
       </button>
 
@@ -92,22 +116,6 @@ export const CreateButton = (address) => {
               templateColumns="repeat(6, 1fr)"
               gap={4}
             >
-              <GridItem rowSpan={1} colSpan={1}>
-                <Text mt={1} fontSize="lg">
-                  Username:
-                </Text>{" "}
-              </GridItem>
-              <GridItem rowSpan={1} colSpan={5}>
-                <Input
-                  value={value.state.username}
-                  placeholder="Username"
-                  variant="outline"
-                  onChange={(e) => {
-                    value.setUsername(e.target.value);
-                    setWalletName(e.target.value);
-                  }}
-                />
-              </GridItem>
               <GridItem rowSpan={1} colSpan={1}>
                 <Text mt={1} fontSize="lg">
                   ID Room:
@@ -137,6 +145,30 @@ export const CreateButton = (address) => {
                   />
                 </HStack>
               </GridItem>
+              <GridItem rowSpan={1} colSpan={1}>
+                <Text mt={1} fontSize="lg">
+                  Room Status:
+                </Text>{" "}
+              </GridItem>
+              <GridItem style={{ alignSelf: "center" }} rowSpan={1} colSpan={5}>
+                <select
+                  className="form-select"
+                  onChange={(e) => {
+                    setRoomStatus(e.target.value);
+                  }}
+                >
+                  <option value="Public">Public</option>
+                  <option value="Private">Private</option>
+                </select>
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={1}>
+                <Text mt={1} fontSize="lg">
+                  Bet:
+                </Text>{" "}
+              </GridItem>
+              <GridItem rowSpan={1} colSpan={5}>
+                <Bet />
+              </GridItem>
             </Grid>
           </ModalBody>
 
@@ -146,7 +178,7 @@ export const CreateButton = (address) => {
                 color="orange"
                 content="Create Room"
                 onClick={() => {
-                  updateName();
+                  createRoomDb();
                   onClose();
                   toast({
                     title: "Room Created!",
@@ -158,7 +190,7 @@ export const CreateButton = (address) => {
                   });
                 }}
                 size="md"
-                nextLink="/play"
+                // nextLink="/play"
               />
             ) : (
               <RoundedButton

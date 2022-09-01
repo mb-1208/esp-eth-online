@@ -25,23 +25,23 @@ export const Bet = () => {
   const parse = (val) => val.replace(/^\$/, "");
 
   return (
-    <div style={{ background: "", borderRadius: "1rem", padding: ".5rem" }}>
+    <div style={{ background: "", borderRadius: "1rem"}}>
       <NumberInput
         style={{
           margin: "0 auto",
-          color: "#6d8725",
-          outline: "none",
-          border: "4px solid green",
-          borderRadius: "1rem",
+          color: "white",
         }}
         disabled={value.state.status !== 0}
         min={0}
         maxW="100%"
         mr="2rem"
-        precision={3}
         step={0.001}
-        value={format(value.state.bet)}
-        onChange={(valueString) => value.setBet(parse(valueString))}
+        value={format(value.state.stateBet)}
+        onChange={(valueString) => {
+          value.setStateBet(parse(valueString));
+          // value.setBet(parse(valueString));
+          console.log(parse(valueString));
+        }}
       >
         <NumberInputField />
         <NumberInputStepper>

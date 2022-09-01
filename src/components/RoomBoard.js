@@ -2,7 +2,7 @@ import React, { useContext, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Text } from "@chakra-ui/layout";
 
-export const Login = () => {
+export const RoomBoard = () => {
   return (
     <>
       <div className="login-section">
