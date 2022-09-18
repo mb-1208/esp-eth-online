@@ -20,25 +20,51 @@ import { RoundedButton } from "./RoundedButton";
 import { ethers } from "ethers";
 import axios from "axios";
 import { IconSearch } from "@tabler/icons";
+import { useRouter } from "next/router";
 
 export const JoinButton = (address) => {
   const [roomId, setRoomId] = useState("");
+  const router = useRouter();
   const toast = useToast();
   const value = useContext(AppContext);
+  const targetNetworkId = '0x66eeb';
   const { isOpen, onOpen, onClose } = useDisclosure();
   const reset = () => {
     value.setStatus(0);
     value.setOutcome("unknown");
-    value.setBet(0);
     value.setChoice(1);
+    value.setRematch("");
   };
+  
+  const checkNetwork = async () => {
+    if (window.ethereum) {
+      const currentChainId = await window.ethereum.request({
+        method: 'eth_chainId',
+      });
+  
+      console.log(currentChainId);
+  
+      if (currentChainId == targetNetworkId) return true;
+      
+      toast({
+        title: "Arbitrum Network Only!",
+        description: "Please make sure your network using Arbitrum.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top",
+      });
+      return router.push('/');
+    }
+  };  
 
   return (
     <>
       <button
-        className="btn-menu-style stats-btn"
+        className="btn-menu-style stats-btn mx-1 mt-1"
         onClick={async () => {
           if (typeof window.ethereum !== "undefined") {
+            checkNetwork();
             if (address.address !== "") {
               onOpen();
             } else {
@@ -70,12 +96,11 @@ export const JoinButton = (address) => {
 
       <Modal size="lg" isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
-        <ModalContent top="6rem" background="#6d8725">
+        <ModalContent top="6rem" background="#787878">
           <ModalHeader>Find Room</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Grid
-              templateRows="repeat(2, 1fr)"
               templateColumns="repeat(6, 1fr)"
               gap={4}
             >
@@ -102,24 +127,54 @@ export const JoinButton = (address) => {
               <RoundedButton
                 color="orange"
                 content="Find Room"
-                onClick={() => {
-                  reset();
-                  onClose();
-                  toast({
-                    title: "Room Joined!",
-                    description: "Join room succeed.",
-                    status: "info",
-                    duration: 4000,
-                    isClosable: true,
-                    position: "top",
-                  });
+                onClick={async () => {
+                  const response = await axios.get(
+                    `https://www.boxcube.space/api/listroom/room/${value.state.gameId}`
+                  );
+                  if (response.data !== null) {
+                    console.log(response.data.roomMember);
+                    if (response.data.roomMember === "1") {
+                      reset();
+                      onClose();
+                      toast({
+                        title: "Room Joined!",
+                        description: "Join room succeed.",
+                        status: "info",
+                        duration: 4000,
+                        isClosable: true,
+                        position: "top",
+                      });
+                      const roomMember = (
+                        parseInt(response.data.roomMember) + 1
+                      ).toString();
+                      value.setRoomNum((response.data.id).toString());
+                      value.setRoomId(roomId);
+                      await axios
+                        .patch(
+                          `https://www.boxcube.space/api/listroom/${roomId}`,
+                          {
+                            roomMember,
+                          }
+                        )
+                        .then(() => router.push("/play"));
+                    } else {
+                      toast({
+                        title: "Room Full!",
+                        status: "error",
+                        duration: 4000,
+                        isClosable: true,
+                        position: "top",
+                      });
+                      getDataRoom();
+                    }
+                  }
                 }}
                 size="md"
                 nextLink="/play"
               />
             ) : (
               <RoundedButton
-                color="#fec078"
+                color="#ef6b9a"
                 content="Find Room"
                 onClick={() => {
                   toast({

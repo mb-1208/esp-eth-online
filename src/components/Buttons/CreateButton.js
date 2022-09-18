@@ -32,6 +32,7 @@ export const CreateButton = (address) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const value = useContext(AppContext);
   const { hasCopied, onCopy } = useClipboard(value.state.gameId);
+  const targetNetworkId = '0x66eeb';
   const parse = (val) => val.replace(/^\$/, "");
   const reset = () => {
     const newId = nanoid();
@@ -41,6 +42,7 @@ export const CreateButton = (address) => {
     value.setOutcome("unknown");
     value.setBet(0);
     value.setChoice(1);
+    value.setRematch("");
   };
 
   const createRoomDb = async () => {
@@ -49,6 +51,9 @@ export const CreateButton = (address) => {
     const roomMember = '1';
     const bet = value.state.stateBet;
     const setRoom = roomStatus;
+    const roomType = '1';
+    const project = 'pawwsProject';
+    const network = 'testnetNetwork';
     try {
       await axios
         .post("https://www.boxcube.space/api/listroom", {
@@ -57,12 +62,37 @@ export const CreateButton = (address) => {
           roomMember,
           bet,
           setRoom,
+          roomType,
+          project,
+          network,
         })
         .then(() => router.push("/play"));
     } catch (e) {
       console.log(e);
     }
   };
+  
+  const checkNetwork = async () => {
+    if (window.ethereum) {
+      const currentChainId = await window.ethereum.request({
+        method: 'eth_chainId',
+      });
+  
+      console.log(currentChainId);
+  
+      if (currentChainId == targetNetworkId) return true;
+      
+      toast({
+        title: "Arbitrum Network Only!",
+        description: "Please make sure your network using Arbitrum.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top",
+      });
+      return router.push('/');
+    }
+  };  
 
   useEffect(() => {
   }, [roomStatus]);
@@ -70,10 +100,10 @@ export const CreateButton = (address) => {
   return (
     <>
       <button
-        className="btn-menu-style stats-btn"
+        className="btn-menu-style stats-btn mx-1 mt-1"
         onClick={() => {
           if (typeof window.ethereum !== "undefined") {
-            console.log(address.address);
+            checkNetwork();
             if (address.address !== "") {
               reset();
               onOpen();
@@ -107,7 +137,7 @@ export const CreateButton = (address) => {
 
       <Modal size="lg" isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
-        <ModalContent top="6rem" background="#6d8725">
+        <ModalContent top="6rem" background="#787878">
           <ModalHeader>Create Room</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
@@ -175,7 +205,7 @@ export const CreateButton = (address) => {
           <ModalFooter>
             {value.state.username !== "" ? (
               <RoundedButton
-                color="orange"
+                color="#ef6b9a"
                 content="Create Room"
                 onClick={() => {
                   createRoomDb();

@@ -13,7 +13,7 @@ export const RoundedButton = ({
     <Link href={nextLink} passHref>
       <Button
         onClick={onClick}
-        style={{color: 'black',background: `${color}`}}
+        style={{color: 'black',background: `${color}`, borderRadius: '50%'}}
         bg={`${color}.400`}
         size={size}
         boxShadow="xl"

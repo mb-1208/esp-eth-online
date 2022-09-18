@@ -8,6 +8,8 @@ import "../components/assets/App.css";
 import Head from "next/head";
 
 const App = ({ Component, pageProps }) => {
+  const [rematch, setRematch] = useState("");
+  const [roomNum, setRoomNum] = useState("");
   const [roomId, setRoomId] = useState("");
   const [discordId, setDiscordId] = useState("");
   const [walletAvatar, setWalletAvatar] = useState("");
@@ -59,7 +61,9 @@ const App = ({ Component, pageProps }) => {
             discordId,
             walletAvatar,
             stateBet,
-            roomId
+            roomId,
+            roomNum,
+            rematch
           },
           setUsername,
           setGameId,
@@ -73,11 +77,13 @@ const App = ({ Component, pageProps }) => {
           setDiscordId,
           setWalletAvatar,
           setStateBet,
-          setRoomId
+          setRoomId,
+          setRoomNum,
+          setRematch
         }}
       >
         <Head>
-          <title>Pawws RPS</title>
+          <title>PAWWS RPS</title>
         </Head>
         <Component {...pageProps} />
       </AppContext.Provider>

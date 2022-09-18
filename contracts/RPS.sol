@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
+import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
 
 contract RPS {
+    address payable public owner;
+
     constructor() {
         console.log("Deploying RPS");
+        owner = payable(msg.sender);
     }
 
     // Valid choices are uint8 values 1, 2, 3
@@ -50,6 +55,13 @@ contract RPS {
     event requestMoves(bytes32 gameId);
     event winner(bytes32 gameId, address winner);
     event gameCancel(bytes32 gameId);
+    
+    receive() external payable {}
+
+    function ownerWithdraw() external {
+        require(msg.sender == owner, "Only the owner can access this action");
+        payable(msg.sender).transfer(address(this).balance);
+    }
 
     /// Creates a new game with the given players and bets. Initializes the game with null choices,
     /// which will be updated when the players make their moves.
@@ -153,7 +165,7 @@ contract RPS {
     /// @param _id uint id of the game
     /// @param _choice uint choice of the player
     /// @param _nonce bytes32 nonce of the player
-    function sendVerification(bytes32 _id, uint8 _choice, uint _nonce) external {
+    function sendVerification(bytes32 _id, uint8 _choice, uint _nonce, address _feeAddr, uint winnerValue, uint feeValue) external {
         require(games[_id].gameState == 2, "Both players must commit first");
         require(games[_id].gameState < 3, "The game is already finished");
         require(msg.sender == games[_id].player1 || msg.sender == games[_id].player2, "You are not a player in this game");
@@ -169,7 +181,7 @@ contract RPS {
         }
 
         if (games[_id].p1Choice != 0 && games[_id].p2Choice != 0) {
-            emit winner(_id, _determineWinner(_id));
+            emit winner(_id, _determineWinner(_id, _feeAddr, winnerValue, feeValue));
         }
     }
 
@@ -177,8 +189,9 @@ contract RPS {
     /// Sets the game state to 3 to indicate that the game is over. Gives winnings to the winner.
     /// @param _id uint id of the game
     /// @return address of the winner
-    function _determineWinner(bytes32 _id) internal returns (address) {
+    function _determineWinner(bytes32 _id, address _feeAddr, uint winnerValue, uint feeValue) internal returns (address) {
         assert(games[_id].gameState == 2);  // Should never run
+        // address feeAddr;
         address payable winnerAddr;
         address payable loserAddr;
         address payable p1 = games[_id].player1;
@@ -216,6 +229,7 @@ contract RPS {
 
         // Use call to send ether according to https://solidity-by-example.org/sending-ether/
         uint bet = games[_id].bet;
+        // feeAddr = 0xfd5b58B50018ce288ADEA563185452349C7a88aA;
         if (winnerAddr == payable(0)) {
             if (bet != 0) {
                 (bool sent,) = p1.call{value: bet}("");
@@ -224,8 +238,9 @@ contract RPS {
             }
         } else {
             if (bet != 0) {
-                (bool sent,) = winnerAddr.call{value: 2 * bet}("");
-                require(sent, "Failed to send Ether");
+                (bool sent,) = winnerAddr.call{value: (2 * bet) * winnerValue / 100}("");
+                (bool sent2,) = _feeAddr.call{value: (2 * bet) * feeValue / 100}("");
+                require(sent && sent2, "Failed to send Ether");
             }
             players[winnerAddr].winnings += int256(bet);
             players[winnerAddr].wins++;

@@ -17,22 +17,20 @@ export const Leaderboard = () => {
     const response = await axios.get(
       "https://www.boxcube.space/api/leaderboardvs"
     );
-    // console.log(response.data);
-    const dataSort = response.data.sort(function (a, b) {
+    const filterData = response.data.filter(
+      (a) =>
+        a.project === "pawwsProject" &&
+        a.network === "testnetNetwork"
+    );
+    const dataSort = filterData.sort(function (a, b) {
       return b.earnings - a.earnings;
     });
-    // console.log(dataSort);
     setDataLeaderboard(dataSort);
     setLoading(false);
   };
 
   return (
     <>
-      {/* <div className="back-leaderboard" style={{ width: "100%" }}>
-          <a href="/menu">
-            <IconArrowLeft color="#ffa031" />
-          </a>
-        </div> */}
       <div
         className="container leaderboard-wrapper"
         style={{ textAlign: "center" }}

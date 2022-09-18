@@ -1,15 +1,16 @@
 import React from "react";
-import Link from "next/link";
+import { useRouter } from "next/router";
 import { useToast } from "@chakra-ui/react";
 import { IconDoor } from "@tabler/icons";
 
 export const RoomCategoryButton = () => {
   const toast = useToast();
+  const router = useRouter();
   return (
     <>
       {/* <Link href="https://rsp-eth.vercel.app/" passHref> */}
       <button
-        className="ms-2 btn-room stats-btn"
+        className="mx-1 mt-1 btn-room stats-btn"
         //   onClick={() => {
         //   }}
       >
@@ -17,23 +18,16 @@ export const RoomCategoryButton = () => {
       </button>
       {/* </Link> */}
       <button
-        className="ms-2 btn-room-disabled stats-btn"
+        className="mx-1 mt-1 btn-room stats-btn"
         onClick={() => {
-          toast({
-            title: "Comingsoon!",
-            description: "",
-            status: "warning",
-            duration: 5000,
-            isClosable: true,
-            position: "top",
-          });
+          router.push("/cpu");
         }}
       >
         <IconDoor />
         vs CPU
       </button>
       <button
-        className="ms-2 btn-room-disabled stats-btn"
+        className="mx-1 mt-1 btn-room-disabled stats-btn"
         onClick={() => {
           toast({
             title: "Comingsoon!",

@@ -32,7 +32,8 @@ export const Bet = () => {
           color: "white",
         }}
         disabled={value.state.status !== 0}
-        min={0}
+        min={0.001}
+        max={0.1}
         maxW="100%"
         mr="2rem"
         step={0.001}
@@ -45,8 +46,8 @@ export const Bet = () => {
       >
         <NumberInputField />
         <NumberInputStepper>
-          <NumberIncrementStepper style={{ color: "green" }} />
-          <NumberDecrementStepper style={{ color: "green" }} />
+          <NumberIncrementStepper style={{ color: "white" }} />
+          <NumberDecrementStepper style={{ color: "white" }} />
         </NumberInputStepper>
       </NumberInput>
     </div>
